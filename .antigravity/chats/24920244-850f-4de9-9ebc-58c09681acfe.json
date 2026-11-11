@@ -4,5 +4,18 @@
   "createdAt": "2026-11-11T20:05:11.730Z",
   "filename": "24920244-850f-4de9-9ebc-58c09681acfe.json",
   "geminiStarted": false,
-  "messages": []
+  "messages": [
+    {
+      "id": "a2480d21-ed7c-4a8e-b85e-40bf60d0e5a4",
+      "role": "user",
+      "content": "PROMPT: Send and link to Blender, and create a 100% accurate replica of the Rolls-Royce aircraft engine. Use Higgsfield to generate all the components.",
+      "status": "pending",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-11T20:05:56.918Z",
+      "sender": "ios",
+      "is_cancelled": false
+    }
+  ]
 }
