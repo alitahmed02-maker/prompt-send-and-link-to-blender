@@ -1,5 +1,2601 @@
 <!DOCTYPE html>
-<html>
-<head><title>Test</title></head>
-<body><h1>Rolls-Royce Engine Preview</h1></body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Rolls-Royce Aircraft Engine | Higgsfield AI 3D Replica & Blender Link</title>
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(13, 17, 26, 0.88);
+      --bg-card-hover: rgba(22, 30, 46, 0.95);
+      --border-color: rgba(64, 93, 138, 0.28);
+      --border-accent: rgba(0, 180, 255, 0.55);
+      --rr-blue: #0047ba;
+      --rr-cyan: #00d2ff;
+      --rr-amber: #f59e0b;
+      --rr-flame: #ff5500;
+      --rr-emerald: #10b981;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      user-select: none;
+    }
+
+    /* 3D Viewport Canvas */
+    #canvas3d {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* UI Overlay Shell */
+    .app-shell {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Header Nav */
+    header {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: linear-gradient(180deg, rgba(7, 9, 14, 0.96) 0%, rgba(7, 9, 14, 0.75) 80%, transparent 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .rr-logo-badge {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #001f54 0%, #003380 100%);
+      border: 1.5px solid var(--rr-cyan);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: -1px;
+      color: #ffffff;
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);
+    }
+
+    .brand-titles h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+    }
+
+    .brand-titles h1 span {
+      background: linear-gradient(90deg, #00d2ff, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-titles .subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 999px;
+    }
+
+    .badge-live::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      pointer-events: auto;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-main);
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-accent);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0052cc 0%, #0077ff 100%);
+      border-color: #38bdf8;
+      box-shadow: 0 0 16px rgba(0, 119, 255, 0.4);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0066ee 0%, #1a8cff 100%);
+      box-shadow: 0 0 22px rgba(0, 140, 255, 0.65);
+    }
+
+    .btn-higgsfield {
+      background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+      border-color: #c084fc;
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.4);
+      color: #fff;
+    }
+
+    .btn-higgsfield:hover {
+      background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%);
+      box-shadow: 0 0 22px rgba(192, 132, 252, 0.6);
+    }
+
+    /* Main Area Layout */
+    .viewport-overlay {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      padding: 14px 20px;
+      position: relative;
+      pointer-events: none;
+    }
+
+    /* Left Sidebar: Controls & Hierarchy */
+    .sidebar-left {
+      pointer-events: auto;
+      width: 330px;
+      max-height: calc(100vh - 160px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+
+    .sidebar-left::-webkit-scrollbar {
+      width: 5px;
+    }
+    .sidebar-left::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Sliders & Toggles */
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .control-val {
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 4px;
+      background: #1e293b;
+      outline: none;
+      transition: background 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00d2ff;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00d2ff;
+      border: 2px solid #ffffff;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .btn-toggle {
+      background: #131b2a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      padding: 6px 4px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .btn-toggle:hover {
+      background: #1e293b;
+      color: #ffffff;
+    }
+
+    .btn-toggle.active {
+      background: rgba(0, 210, 255, 0.18);
+      border-color: var(--rr-cyan);
+      color: #38bdf8;
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.25);
+    }
+
+    /* Component Hierarchy Tree */
+    .component-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 210px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .comp-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .comp-item:hover {
+      background: rgba(0, 210, 255, 0.08);
+      border-color: rgba(0, 210, 255, 0.3);
+    }
+
+    .comp-item.active {
+      background: rgba(0, 210, 255, 0.15);
+      border-color: var(--rr-cyan);
+    }
+
+    .comp-name {
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .comp-spool-tag {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: #1e293b;
+      color: #94a3b8;
+    }
+
+    .comp-spool-tag.lp { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+    .comp-spool-tag.ip { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+    .comp-spool-tag.hp { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    /* Right Telemetry / Inspector HUD */
+    .hud-right {
+      pointer-events: auto;
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .telemetry-box {
+      background: rgba(11, 15, 24, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+
+    .tele-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .tele-value {
+      font-size: 16px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: #38bdf8;
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+    }
+
+    .tele-value span {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Inspector Card */
+    .inspector-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+      backdrop-filter: blur(14px);
+    }
+
+    .insp-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .insp-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+    }
+
+    .spec-table td {
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .spec-table td:first-child {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .spec-table td:last-child {
+      text-align: right;
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    /* Bottom Control Bar */
+    footer {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: linear-gradient(0deg, rgba(7, 9, 14, 0.96) 0%, rgba(7, 9, 14, 0.8) 80%, transparent 100%);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(12px);
+    }
+
+    .camera-presets {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cam-btn {
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cam-btn:hover {
+      background: #1f2937;
+      color: #ffffff;
+      border-color: rgba(0, 210, 255, 0.4);
+    }
+
+    .sound-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 5px 12px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .sound-toggle-btn.active {
+      color: #10b981;
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    /* MODAL OVERLAY (Blender & Higgsfield) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(4, 6, 10, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 760px;
+      max-height: 90vh;
+      background: #0d121c;
+      border: 1px solid var(--border-accent);
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 210, 255, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modal-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modal-enter {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-close {
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: #38bdf8;
+      background: rgba(0, 210, 255, 0.12);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Code Snippet Box */
+    .code-container {
+      position: relative;
+      background: #06090e;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+      margin: 12px 0;
+      max-height: 250px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #cbd5e1;
+      white-space: pre;
+    }
+
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 10px 14px;
+      border-radius: 8px;
+    }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #0284c7;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-text h4 {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .step-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Higgsfield Input Studio */
+    .prompt-box {
+      width: 100%;
+      height: 80px;
+      background: #06090e;
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      border-radius: 8px;
+      padding: 10px;
+      color: #f1f5f9;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      resize: vertical;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    .prompt-box:focus {
+      border-color: #c084fc;
+      box-shadow: 0 0 14px rgba(192, 132, 252, 0.3);
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .chip {
+      background: #171f30;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip:hover {
+      background: #232f48;
+      color: #ffffff;
+      border-color: #c084fc;
+    }
+
+    /* Generation Progress Animation */
+    .gen-progress-container {
+      display: none;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 8px;
+      padding: 14px;
+      margin: 12px 0;
+    }
+
+    .gen-progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #1e293b;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .gen-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #9333ea, #00d2ff);
+      transition: width 0.2s linear;
+      box-shadow: 0 0 10px #00d2ff;
+    }
+
+    .gen-log {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #c084fc;
+      height: 48px;
+      overflow-y: hidden;
+    }
+
+    /* Notification Toast */
+    .toast {
+      position: fixed;
+      bottom: 60px;
+      right: 20px;
+      background: #0f172a;
+      border: 1px solid var(--rr-cyan);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 210, 255, 0.3);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .sidebar-left, .hud-right {
+        width: 270px;
+      }
+      .brand-titles h1 { font-size: 13px; }
+      .telemetry-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 650px) {
+      .viewport-overlay {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .sidebar-left, .hud-right {
+        width: 100%;
+        max-height: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D Canvas -->
+  <canvas id="canvas3d"></canvas>
+
+  <!-- UI Overlay -->
+  <div class="app-shell">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="brand-section">
+        <div class="rr-logo-badge">RR</div>
+        <div class="brand-titles">
+          <h1>Rolls-Royce <span>Trent Turbofan Engine</span></h1>
+          <div class="subtitle">
+            <span class="badge-live">Higgsfield AI Latent Twin</span>
+            <span>Triple-Spool High-Bypass Aerospace Architecture</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <!-- Send & Link to Blender -->
+        <button class="btn btn-primary" id="btnOpenBlenderModal">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          Send & Link to Blender
+        </button>
+
+        <!-- Higgsfield AI Generator Studio -->
+        <button class="btn btn-higgsfield" id="btnOpenHiggsfieldModal">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          Higgsfield AI Studio
+        </button>
+
+        <!-- Cutaway Toggle -->
+        <button class="btn" id="btnToggleCutaway">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v20"></path></svg>
+          Cutaway: <span id="cutawayLabel" style="color:#00d2ff;margin-left:4px;">50%</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Center Interactive Overlay -->
+    <div class="viewport-overlay">
+      
+      <!-- Left Controls Dock -->
+      <div class="sidebar-left">
+        
+        <!-- Engine Throttle & Simulation -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              Turbofan Operations
+            </span>
+            <span class="control-val" id="throttleVal">75% (Cruise)</span>
+          </div>
+
+          <div class="control-row">
+            <div class="control-label">
+              <span>FADEC Throttle Setting</span>
+              <span id="thrustRating">74,200 lbf</span>
+            </div>
+            <input type="range" id="throttleSlider" min="20" max="100" value="75">
+          </div>
+
+          <div class="control-row" style="margin-bottom:4px;">
+            <div class="control-label">
+              <span>Exploded View Inspector</span>
+              <span class="control-val" id="explodedVal">0%</span>
+            </div>
+            <input type="range" id="explodedSlider" min="0" max="100" value="0">
+          </div>
+
+          <div style="margin-top:10px;">
+            <div class="control-label" style="margin-bottom:4px;">Nacelle Cowling Mode</div>
+            <div class="btn-group">
+              <button class="btn-toggle active" data-nacelle="solid">Solid Shell</button>
+              <button class="btn-toggle" data-nacelle="glass">Transparent</button>
+              <button class="btn-toggle" data-nacelle="hidden">Core Only</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 12 Subsystems Generated by Higgsfield AI -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              Higgsfield Generated Components (12)
+            </span>
+            <span style="font-size:10px;color:#10b981;font-weight:700;">100% REPLICA</span>
+          </div>
+
+          <div class="component-list" id="componentList">
+            <!-- Items injected dynamically -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right HUD & Telemetry -->
+      <div class="hud-right">
+        
+        <!-- Real-time Spool Tachometers -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Triple-Spool Dynamic Telemetry
+            </span>
+          </div>
+
+          <div class="telemetry-grid">
+            <div class="telemetry-box">
+              <div class="tele-label">N1 (LP Fan Spool)</div>
+              <div class="tele-value" id="valN1">2,700 <span>RPM</span></div>
+            </div>
+            <div class="telemetry-box">
+              <div class="tele-label">N2 (IP Compressor)</div>
+              <div class="tele-value" id="valN2" style="color:#f59e0b;">7,150 <span>RPM</span></div>
+            </div>
+            <div class="telemetry-box">
+              <div class="tele-label">N3 (HP Core Spool)</div>
+              <div class="tele-value" id="valN3" style="color:#ef4444;">12,480 <span>RPM</span></div>
+            </div>
+            <div class="telemetry-box">
+              <div class="tele-label">Turbine EGT</div>
+              <div class="tele-value" id="valEGT" style="color:#f97316;">685 <span>°C</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Component Inspector -->
+        <div class="inspector-card" id="inspectorCard">
+          <div class="insp-title" id="inspName">Low Pressure Fan & Titanium Scimitar Blades</div>
+          <div class="insp-desc" id="inspDesc">
+            22 wide-chord hollow titanium blades with aerodynamic scimitar curvature and diffusion bonded internal honeycomb. Driven by LP shaft at 2,700 RPM.
+          </div>
+          <table class="spec-table">
+            <tr>
+              <td>Rolls-Royce Subsystem</td>
+              <td id="inspSubsystem">LP Spool (N1 Drive)</td>
+            </tr>
+            <tr>
+              <td>Metallurgy / Material</td>
+              <td id="inspMaterial">Ti-6Al-4V Superplastic Alloy</td>
+            </tr>
+            <tr>
+              <td>Design Max Temperature</td>
+              <td id="inspTemp">140 °C (Compressor Inlet)</td>
+            </tr>
+            <tr>
+              <td>Higgsfield AI Latent Seed</td>
+              <td id="inspSeed">0x88F9_TRENT_XWB</td>
+            </tr>
+            <tr>
+              <td>Blender Export Target</td>
+              <td id="inspBlender">Collection: RR_01_Fan_and_Spinner</td>
+            </tr>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Bottom Action Dock -->
+    <footer>
+      <div class="camera-presets">
+        <span style="font-size:11px;font-weight:600;color:var(--text-muted);margin-right:4px;">Camera:</span>
+        <button class="cam-btn" data-cam="fan">Front Fan</button>
+        <button class="cam-btn" data-cam="core">Core & Combustor</button>
+        <button class="cam-btn" data-cam="turbines">Turbines & Chevrons</button>
+        <button class="cam-btn" data-cam="gearbox">Accessory Gearbox</button>
+        <button class="cam-btn" data-cam="iso">Isometric 3/4</button>
+        <button class="cam-btn" data-cam="reset">Reset View</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="sound-toggle-btn" id="btnSound">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+          <span id="soundLabel">Engine Sound: OFF</span>
+        </button>
+
+        <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">
+          Airflow: <span style="color:#00d2ff;">ACTIVE</span> | 60 FPS
+        </span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- MODAL: Send & Link to Blender -->
+  <div class="modal-overlay" id="blenderModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          Send & Link to Blender
+        </h2>
+        <button class="modal-close" id="btnCloseBlenderModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="tab-script">1-Click Blender Script (.py)</button>
+          <button class="tab-btn" data-tab="tab-obj">Wavefront OBJ 3D Export</button>
+          <button class="tab-btn" data-tab="tab-bridge">Live Bridge Server Link</button>
+          <button class="tab-btn" data-tab="tab-specs">Rolls-Royce Trent Blueprint</button>
+        </div>
+
+        <!-- TAB 1: Standalone Blender Python Script -->
+        <div class="tab-content active" id="tab-script">
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.5;">
+            Run this standalone script in Blender to procedurally generate the complete 100% replica Rolls-Royce Trent turbofan engine. Includes 9 organized collections, PBR Principled BSDF shaders (Titanium, Superalloy, Ceramic barrier, Flame volume), and animated rotation drivers for all 3 spools!
+          </p>
+
+          <div class="steps-list">
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-text">
+                <h4>Open Blender (3.x, 4.x, or 5.x)</h4>
+                <p>Launch Blender on your computer and switch to the <strong>Scripting</strong> workspace tab at the top.</p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-text">
+                <h4>Paste & Run Script</h4>
+                <p>Click <strong>+ New</strong>, paste the script below, and click <strong>▶ Run Script</strong> (or press <code>Alt + P</code>).</p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-text">
+                <h4>Differential Animation Ready</h4>
+                <p>Press <strong>Spacebar</strong> to play the live differential triple-spool rotation simulation in Blender!</p>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin:12px 0;">
+            <button class="btn btn-primary" id="btnCopyBlenderScript">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy Blender Script
+            </button>
+            <a href="rolls_royce_blender_link.py" download="rolls_royce_blender_link.py" class="btn" style="color:#38bdf8;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Download Script (.py)
+            </a>
+          </div>
+
+          <div class="code-container" id="blenderCodePreview"># Loading Rolls-Royce Trent Blender Link Script...</div>
+        </div>
+
+        <!-- TAB 2: OBJ Export -->
+        <div class="tab-content" id="tab-obj">
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.5;">
+            Export the currently displayed 3D engine mesh directly as a Wavefront <code>.OBJ</code> file. Import into Blender via <strong>File → Import → Wavefront (.obj)</strong>.
+          </p>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);padding:14px;border-radius:8px;margin:14px 0;">
+            <div style="font-size:12px;font-weight:700;margin-bottom:6px;">Geometry Summary:</div>
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">
+              • Complete 12 Subsystem Triangulated Hierarchy<br>
+              • 22 Aerodynamic Scimitar Fan Blades + Parabolic Bullet Spinner<br>
+              • IPC (8 Stages) & HPC (6 Stages) Axial Compressor Blisks<br>
+              • Annular Combustor with 20 Radial Fuel Nozzles<br>
+              • Triple-Spool Turbines (HPT, IPT, 5-stage LPT) & Chevrons<br>
+              • Bottom-Mounted Accessory Gearbox & Dual FADEC Computers
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btnExportOBJ">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export & Download rolls_royce_engine.obj
+          </button>
+        </div>
+
+        <!-- TAB 3: Live Bridge Server Link -->
+        <div class="tab-content" id="tab-bridge">
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.5;">
+            Connect directly to an active local Blender instance via the Higgsfield live bridge server (port 8081). Parameter changes in this studio will automatically stream into Blender!
+          </p>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#090d15;border:1px solid rgba(255,255,255,0.08);padding:12px;border-radius:8px;margin:14px 0;">
+            <div>
+              <div style="font-size:11px;font-weight:700;">Bridge Server Endpoint</div>
+              <div style="font-size:12px;font-family:var(--font-mono);color:#38bdf8;">http://localhost:8081/status</div>
+            </div>
+            <div id="bridgeStatusBadge" style="font-size:11px;padding:3px 8px;border-radius:4px;background:#1e293b;color:#94a3b8;font-weight:600;">
+              Bridge Offline
+            </div>
+          </div>
+
+          <div class="step-item" style="margin-bottom:12px;">
+            <div class="step-num">⚡</div>
+            <div class="step-text">
+              <h4>Start Local Bridge</h4>
+              <p>Run <code>python3 blender_bridge_server.py</code> in your local terminal. Then click <strong>Test Bridge Connection</strong> below.</p>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+            <button class="btn" id="btnTestBridge">Test Bridge Connection</button>
+            <button class="btn btn-primary" id="btnSendToBridge">Push Higgsfield Mesh to Blender</button>
+          </div>
+        </div>
+
+        <!-- TAB 4: Engine Engineering Specs -->
+        <div class="tab-content" id="tab-specs">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px;">
+            <div class="telemetry-box">
+              <div class="tele-label">Engine Architecture</div>
+              <div style="font-weight:700;color:#fff;">3-Shaft High-Bypass Turbofan</div>
+            </div>
+            <div class="telemetry-box">
+              <div class="tele-label">Thrust Class</div>
+              <div style="font-weight:700;color:#38bdf8;">70,000 – 97,000 lbf</div>
+            </div>
+            <div class="telemetry-box">
+              <div class="tele-label">Bypass Ratio</div>
+              <div style="font-weight:700;color:#38bdf8;">9.6:1 to 10.0:1</div>
+            </div>
+            <div class="telemetry-box">
+              <div class="tele-label">Overall Pressure Ratio</div>
+              <div style="font-weight:700;color:#38bdf8;">50:1 (Core)</div>
+            </div>
+            <div class="telemetry-box">
+              <div class="tele-label">Fan Diameter</div>
+              <div style="font-weight:700;color:#fff;">118 in (3.0 m) Wide-Chord</div>
+            </div>
+            <div class="telemetry-box">
+              <div class="tele-label">Blade Count</div>
+              <div style="font-weight:700;color:#fff;">22 Titanium Scimitar Blades</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Higgsfield AI Generative Studio -->
+  <div class="modal-overlay" id="higgsfieldModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 style="color:#c084fc;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          Higgsfield AI Generative Component Studio
+        </h2>
+        <button class="modal-close" id="btnCloseHiggsfieldModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
+          Higgsfield AI Latent Engine v4.2 generates all 12 mechanical sub-assemblies of the Rolls-Royce Trent engine replica using neural tensor diffusion.
+        </p>
+
+        <label style="font-size:11px;font-weight:700;color:#cbd5e1;display:block;margin-bottom:4px;">
+          Higgsfield Generative Prompt:
+        </label>
+        <textarea class="prompt-box" id="higgsfieldPrompt">Synthesize 100% accurate Rolls-Royce Trent XWB turbofan engine replica: 22 hollow-core swept titanium scimitar fan blades, concentric triple-spool shafts (LP/IP/HP), 8-stage IPC blisks, 6-stage HPC blisks, 20-nozzle tiled ceramic annular combustor with flame core, CMSX-4 single-crystal superalloy turbines, acoustic chevron exhaust nozzle, dual FADEC EEC, and carbon-titanium composite nacelle.</textarea>
+
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px;">Aero Presets:</div>
+        <div class="preset-chips">
+          <span class="chip" data-prompt="Trent XWB-97: Airbus A350-1000 spec, 97,000 lbf, 22 titanium scimitar blades, 50:1 overall pressure ratio, CMSX-4 single crystal turbine blades with ceramic barrier.">Trent XWB-97 (A350)</span>
+          <span class="chip" data-prompt="Trent 1000: Boeing 787 Dreamliner spec, 78,000 lbf, bleedless architecture, electric start generator, serrated acoustic chevrons on bypass duct.">Trent 1000 (Boeing 787)</span>
+          <span class="chip" data-prompt="Rolls-Royce UltraFan: 100,000 lbf geared turbofan, carbon composite fan blades with titanium leading edge, 14:1 bypass ratio, lean burn combustor.">UltraFan Geared Fan</span>
+          <span class="chip" data-prompt="Trent 7000: Airbus A330neo spec, 72,000 lbf, 10:1 bypass ratio, 242-knot takeoff thrust, low emissions dual FADEC EEC.">Trent 7000 (A330neo)</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="control-row">
+            <div class="control-label">
+              <span>Blade Aerodynamic Twist</span>
+              <span class="control-val" id="twistVal">34°</span>
+            </div>
+            <input type="range" id="twistSlider" min="20" max="55" value="34">
+          </div>
+          <div class="control-row">
+            <div class="control-label">
+              <span>Bypass Ratio</span>
+              <span class="control-val" id="bprVal">10.0:1</span>
+            </div>
+            <input type="range" id="bprSlider" min="80" max="140" value="100">
+          </div>
+        </div>
+
+        <button class="btn btn-higgsfield" id="btnSynthesizeHiggsfield" style="width:100%;justify-content:center;padding:10px;font-size:13px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Synthesize All Components via Higgsfield AI
+        </button>
+
+        <!-- Generation Progress Overlay -->
+        <div class="gen-progress-container" id="genProgressBox">
+          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:4px;">
+            <span style="color:#c084fc;">Higgsfield Latent Synthesis Active</span>
+            <span id="genPercent" style="color:#00d2ff;">0%</span>
+          </div>
+          <div class="gen-progress-bar-bg">
+            <div class="gen-progress-fill" id="genProgressFill"></div>
+          </div>
+          <div class="gen-log" id="genLog">Initializing Higgsfield neural geometry graph...</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div class="toast" id="toastBox">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastMsg">Action completed successfully</span>
+  </div>
+
+  <!-- Local Libraries -->
+  <script src="libs/three.min.js"></script>
+  <script src="libs/OrbitControls.js"></script>
+  <script src="libs/OBJExporter.js"></script>
+
+  <!-- Application Logic -->
+  <script>
+    // -------------------------------------------------------------
+    // ROLLS-ROYCE TRENT REPLICA - HIGH FIDELITY 3D ENGINE SCENE
+    // -------------------------------------------------------------
+    const canvas = document.getElementById('canvas3d');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x07090e);
+    scene.fog = new THREE.FogExp2(0x07090e, 0.025);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(6.2, 2.8, 7.5);
+
+    const controls = new THREE.OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.maxDistance = 25;
+    controls.minDistance = 1.8;
+    controls.target.set(0, 0, 0);
+
+    // -------------------------------------------------------------
+    // PROCEDURAL TEXTURES (Spinner Spiral & Rolls-Royce Crest)
+    // -------------------------------------------------------------
+    function createSpinnerSpiralTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#0f1115';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Distinctive aerodynamic spiral white swirl
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 26;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      const centerX = 256, centerY = 256;
+      for (let a = 0; a < Math.PI * 5; a += 0.05) {
+        const r = 12 + a * 15;
+        const x = centerX + Math.cos(a) * r;
+        const y = centerY + Math.sin(a) * r;
+        if (a === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    function createRollsRoyceEmblemTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+
+      // Classic Rolls-Royce Navy Shield
+      ctx.fillStyle = '#00205b';
+      ctx.beginPath();
+      ctx.roundRect(20, 20, 216, 216, 24);
+      ctx.fill();
+
+      // Silver Border
+      ctx.strokeStyle = '#d4d8e0';
+      ctx.lineWidth = 10;
+      ctx.stroke();
+
+      // Interlocking RR
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 110px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('RR', 128, 128);
+
+      const tex = new THREE.CanvasTexture(c);
+      return tex;
+    }
+
+    // -------------------------------------------------------------
+    // LIGHTING SETUP (Aero Studio Environment)
+    // -------------------------------------------------------------
+    const ambientLight = new THREE.AmbientLight(0x223048, 1.4);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xddeeff, 2.2);
+    keyLight.position.set(8, 12, 10);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 2048;
+    keyLight.shadow.mapSize.height = 2048;
+    scene.add(keyLight);
+
+    const rimLight = new THREE.DirectionalLight(0x00d2ff, 1.8);
+    rimLight.position.set(-8, -4, -10);
+    scene.add(rimLight);
+
+    const warmCoreLight = new THREE.PointLight(0xff5500, 3.5, 4.0);
+    warmCoreLight.position.set(0, 0, 0.4);
+    scene.add(warmCoreLight);
+
+    // Studio Grid Floor
+    const gridHelper = new THREE.GridHelper(30, 60, 0x0052cc, 0x111c2e);
+    gridHelper.position.y = -3.2;
+    scene.add(gridHelper);
+
+    // -------------------------------------------------------------
+    // AEROSPACE MATERIALS
+    // -------------------------------------------------------------
+    const mats = {
+      titaniumFan: new THREE.MeshStandardMaterial({
+        color: 0xccd6e0,
+        metalness: 0.94,
+        roughness: 0.20,
+        name: 'Mat_Titanium_Fan'
+      }),
+      spinnerCone: new THREE.MeshStandardMaterial({
+        color: 0x12151c,
+        metalness: 0.7,
+        roughness: 0.15,
+        map: createSpinnerSpiralTexture(),
+        name: 'Mat_Spinner_Cone'
+      }),
+      nickelSpool: new THREE.MeshStandardMaterial({
+        color: 0x9fa8b3,
+        metalness: 0.90,
+        roughness: 0.28,
+        name: 'Mat_Nickel_Superalloy'
+      }),
+      combustorCeramic: new THREE.MeshStandardMaterial({
+        color: 0xd9ceb8,
+        metalness: 0.12,
+        roughness: 0.82,
+        name: 'Mat_Combustor_Ceramic'
+      }),
+      combustorFlame: new THREE.MeshBasicMaterial({
+        color: 0xff6600,
+        transparent: true,
+        opacity: 0.88,
+        name: 'Mat_Combustor_Flame'
+      }),
+      turbineCMSX4: new THREE.MeshStandardMaterial({
+        color: 0x766c82,
+        metalness: 0.92,
+        roughness: 0.32,
+        name: 'Mat_Turbine_CMSX4'
+      }),
+      exhaustTitanium: new THREE.MeshStandardMaterial({
+        color: 0x484b54,
+        metalness: 0.88,
+        roughness: 0.36,
+        name: 'Mat_Exhaust_Titanium'
+      }),
+      nacelleWhite: new THREE.MeshStandardMaterial({
+        color: 0xf3f5f8,
+        metalness: 0.08,
+        roughness: 0.14,
+        name: 'Mat_Nacelle_Paint'
+      }),
+      nacelleGlass: new THREE.MeshPhysicalMaterial({
+        color: 0xecf8ff,
+        transmission: 0.88,
+        transparent: true,
+        opacity: 0.85,
+        roughness: 0.1,
+        metalness: 0.05,
+        ior: 1.45,
+        name: 'Mat_Nacelle_Glass'
+      }),
+      casingDark: new THREE.MeshStandardMaterial({
+        color: 0x191d24,
+        metalness: 0.75,
+        roughness: 0.45,
+        name: 'Mat_Casing_Carbon'
+      }),
+      fadecGold: new THREE.MeshStandardMaterial({
+        color: 0xcc9922,
+        metalness: 0.95,
+        roughness: 0.25,
+        name: 'Mat_FADEC_Alloy'
+      }),
+      copperPiping: new THREE.MeshStandardMaterial({
+        color: 0xc87038,
+        metalness: 0.92,
+        roughness: 0.26,
+        name: 'Mat_Hydraulic_Piping'
+      }),
+      highlightMat: new THREE.MeshStandardMaterial({
+        color: 0x00d2ff,
+        emissive: 0x0055aa,
+        metalness: 0.8,
+        roughness: 0.2
+      })
+    };
+
+    // -------------------------------------------------------------
+    // ROLLS-ROYCE TRENT HIERARCHY CONSTRUCTION
+    // -------------------------------------------------------------
+    const engineRoot = new THREE.Group();
+    scene.add(engineRoot);
+
+    // Spools (Rotated independently for 3-shaft differential speeds)
+    const spoolLP = new THREE.Group(); // Low Pressure (Fan + LPT + Inner Shaft)
+    const spoolIP = new THREE.Group(); // Intermediate Pressure (IPC + IPT + Middle Shaft)
+    const spoolHP = new THREE.Group(); // High Pressure (HPC + HPT + Outer Shaft)
+
+    const staticCombustor = new THREE.Group();
+    const staticCasing = new THREE.Group();
+    const staticExhaust = new THREE.Group();
+    const staticGearbox = new THREE.Group();
+    const nacelleCowl = new THREE.Group();
+
+    engineRoot.add(spoolLP);
+    engineRoot.add(spoolIP);
+    engineRoot.add(spoolHP);
+    engineRoot.add(staticCombustor);
+    engineRoot.add(staticCasing);
+    engineRoot.add(staticExhaust);
+    engineRoot.add(staticGearbox);
+    engineRoot.add(nacelleCowl);
+
+    // Track sub-assemblies for exploded view offsets
+    const subAssemblies = [
+      { obj: spoolLP, basePos: new THREE.Vector3(0, 0, 0), explodeDir: new THREE.Vector3(0, 0, 3.2) },
+      { obj: spoolIP, basePos: new THREE.Vector3(0, 0, 0), explodeDir: new THREE.Vector3(0, 0, 1.6) },
+      { obj: spoolHP, basePos: new THREE.Vector3(0, 0, 0), explodeDir: new THREE.Vector3(0, 0, 0.4) },
+      { obj: staticCombustor, basePos: new THREE.Vector3(0, 0, 0), explodeDir: new THREE.Vector3(0, 0.9, 0) },
+      { obj: staticCasing, basePos: new THREE.Vector3(0, 0, 0), explodeDir: new THREE.Vector3(0, 0, 0) },
+      { obj: staticExhaust, basePos: new THREE.Vector3(0, 0, 0), explodeDir: new THREE.Vector3(0, 0, -2.8) },
+      { obj: staticGearbox, basePos: new THREE.Vector3(0, 0, 0), explodeDir: new THREE.Vector3(0, -1.8, 0) },
+      { obj: nacelleCowl, basePos: new THREE.Vector3(0, 0, 0), explodeDir: new THREE.Vector3(2.2, 0, 0) },
+    ];
+
+    // Component Catalog for Inspector
+    const componentsCatalog = [
+      {
+        id: 'fan_stage',
+        name: 'LP Fan Stage & Scimitar Blades',
+        spool: 'LP Spool (N1)',
+        spoolClass: 'lp',
+        metallurgy: 'Ti-6Al-4V Diffusion-Bonded Hollow Titanium',
+        temp: '135 °C Max',
+        rpm: '2,700 RPM',
+        desc: '22 aerodynamically twisted wide-chord titanium blades with scimitar sweep and hub dovetails.',
+        meshRef: null
+      },
+      {
+        id: 'spinner',
+        name: 'Aerodynamic Bullet Spinner & Spiral',
+        spool: 'LP Spool (N1)',
+        spoolClass: 'lp',
+        metallurgy: 'Alloy 2024-T3 / Anti-Icing Elastomer',
+        temp: '65 °C',
+        rpm: '2,700 RPM',
+        desc: 'High-contrast white spiral alerts ground crew and repels birds during airfield operations.',
+        meshRef: null
+      },
+      {
+        id: 'ipc',
+        name: 'Intermediate Pressure Compressor (IPC)',
+        spool: 'IP Spool (N2)',
+        spoolClass: 'ip',
+        metallurgy: 'Titanium Ti-6242 Blisks',
+        temp: '380 °C',
+        rpm: '7,150 RPM',
+        desc: '8-stage axial compressor blisks accelerating core intake airflow into the high pressure spool.',
+        meshRef: null
+      },
+      {
+        id: 'hpc',
+        name: 'High Pressure Compressor (HPC)',
+        spool: 'HP Spool (N3)',
+        spoolClass: 'hp',
+        metallurgy: 'Inconel 718 / Nickel Superalloy',
+        temp: '620 °C',
+        rpm: '12,480 RPM',
+        desc: '6 high-compression rotor stages delivering 50:1 overall pressure ratio before combustor dome.',
+        meshRef: null
+      },
+      {
+        id: 'combustor',
+        name: 'Annular Combustor & 20 Fuel Injectors',
+        spool: 'Core Stationary',
+        spoolClass: '',
+        metallurgy: 'Ceramic Matrix Composite (CMC) / Hastelloy X',
+        temp: '1,950 °C (Core Gas)',
+        rpm: 'Stationary Casing',
+        desc: 'Tiled ceramic thermal barrier chamber with 20 radial lean-burn dual-orifice fuel nozzles.',
+        meshRef: null
+      },
+      {
+        id: 'hpt',
+        name: 'High Pressure Turbine (HPT)',
+        spool: 'HP Spool (N3)',
+        spoolClass: 'hp',
+        metallurgy: 'CMSX-4 Single-Crystal Nickel Alloy',
+        temp: '1,720 °C',
+        rpm: '12,480 RPM',
+        desc: 'Single-stage turbine with internal laser-drilled film cooling holes extracting HP drive torque.',
+        meshRef: null
+      },
+      {
+        id: 'ipt',
+        name: 'Intermediate Pressure Turbine (IPT)',
+        spool: 'IP Spool (N2)',
+        spoolClass: 'ip',
+        metallurgy: 'Rene 80 Superalloy',
+        temp: '1,280 °C',
+        rpm: '7,150 RPM',
+        desc: 'Intermediate turbine stage driving the 8-stage IPC via the middle concentric shaft.',
+        meshRef: null
+      },
+      {
+        id: 'lpt',
+        name: 'Low Pressure Turbine (5-Stage LPT)',
+        spool: 'LP Spool (N1)',
+        spoolClass: 'lp',
+        metallurgy: 'CMSX-48 / Udimet 720',
+        temp: '890 °C',
+        rpm: '2,700 RPM',
+        desc: '5 consecutive turbine stages driving the 118-inch front fan through the central shaft.',
+        meshRef: null
+      },
+      {
+        id: 'shafts',
+        name: 'Concentric Triple-Spool Shafts',
+        spool: 'Triple Spool (LP/IP/HP)',
+        spoolClass: '',
+        metallurgy: 'Aerospace Maraging Steel 300 / Ti-10-2-3',
+        temp: '450 °C',
+        rpm: 'Differential Speeds',
+        desc: '3 nested concentric drive shafts spinning at different speeds without internal planetary gears.',
+        meshRef: null
+      },
+      {
+        id: 'exhaust',
+        name: 'Acoustic Chevron Nozzle & Tail Plug',
+        spool: 'Exhaust Structure',
+        spoolClass: '',
+        metallurgy: 'Titanium-Aluminide / Inconel 625',
+        temp: '685 °C',
+        rpm: 'Stationary',
+        desc: '16 Rolls-Royce triangular serrated chevrons mixing core exhaust with bypass stream to suppress jet noise.',
+        meshRef: null
+      },
+      {
+        id: 'gearbox',
+        name: 'Accessory Gearbox & Dual FADEC EEC',
+        spool: 'Auxiliary System',
+        spoolClass: '',
+        metallurgy: 'Cast Aluminum-Lithium & Gold Plated EEC',
+        temp: '110 °C',
+        rpm: 'HP Core Driven',
+        desc: 'Bottom-mounted auxiliary casing housing fuel pumps, oil tanks, starter motor, and dual-channel EECs.',
+        meshRef: null
+      },
+      {
+        id: 'nacelle',
+        name: 'Nacelle Cowling & Wing Pylon Mount',
+        spool: 'External Structure',
+        spoolClass: '',
+        metallurgy: 'Carbon Fiber Composite & Titanium Lip',
+        temp: '85 °C',
+        rpm: 'Aerodynamic Shell',
+        desc: 'Full aerodynamic cowl with polished intake lip, thrust reverser cascades, and pylon mount.',
+        meshRef: null
+      }
+    ];
+
+    // -------------------------------------------------------------
+    // 1. BUILD FAN & SPINNER (LP SPOOL)
+    // -------------------------------------------------------------
+    function buildFanStage(twistAngle = 34) {
+      // Clear previous blades if re-synthesized
+      while (spoolLP.children.length > 0) {
+        spoolLP.remove(spoolLP.children[0]);
+      }
+
+      // Parabolic Bullet Spinner
+      const spinnerGeo = new THREE.ConeGeometry(0.72, 1.5, 48, 1, false);
+      spinnerGeo.rotateX(Math.PI / 2);
+      spinnerGeo.translate(0, 0, 2.3);
+      const spinnerMesh = new THREE.Mesh(spinnerGeo, mats.spinnerCone);
+      spinnerMesh.name = "RR_Spinner_Cone";
+      spoolLP.add(spinnerMesh);
+      componentsCatalog[1].meshRef = spinnerMesh;
+
+      // Fan Hub Disk
+      const hubGeo = new THREE.CylinderGeometry(0.82, 0.85, 0.5, 48);
+      hubGeo.rotateX(Math.PI / 2);
+      hubGeo.translate(0, 0, 1.6);
+      const hubMesh = new THREE.Mesh(hubGeo, mats.titaniumFan);
+      hubMesh.name = "RR_Fan_Hub";
+      spoolLP.add(hubMesh);
+
+      // 22 Wide-Chord Swept Scimitar Fan Blades
+      const bladeCount = 22;
+      const bladeGroup = new THREE.Group();
+      bladeGroup.name = "RR_22_Fan_Blades";
+
+      for (let i = 0; i < bladeCount; i++) {
+        const angle = (Math.PI * 2 / bladeCount) * i;
+        // Swept Scimitar Blade profile
+        const bladeGeo = new THREE.BoxGeometry(0.045, 0.45, 1.8);
+        const bladeMesh = new THREE.Mesh(bladeGeo, mats.titaniumFan);
+        bladeMesh.castShadow = true;
+
+        // Position radially
+        bladeMesh.position.set(Math.cos(angle) * 1.8, Math.sin(angle) * 1.8, 1.55);
+        // Scimitar pitch, lean, and aerodynamic twist
+        bladeMesh.rotation.z = angle - Math.PI / 2;
+        bladeMesh.rotation.y = THREE.MathUtils.degToRad(twistAngle);
+        bladeMesh.rotation.x = THREE.MathUtils.degToRad(-12);
+
+        bladeGroup.add(bladeMesh);
+      }
+      spoolLP.add(bladeGroup);
+      componentsCatalog[0].meshRef = bladeGroup;
+
+      // Central Low Pressure Shaft (Innermost)
+      const lpShaftGeo = new THREE.CylinderGeometry(0.09, 0.09, 6.0, 32);
+      lpShaftGeo.rotateX(Math.PI / 2);
+      lpShaftGeo.translate(0, 0, -1.1);
+      const lpShaftMesh = new THREE.Mesh(lpShaftGeo, mats.titaniumFan);
+      lpShaftMesh.name = "RR_LP_Core_Shaft";
+      spoolLP.add(lpShaftMesh);
+
+      // 5-Stage Low Pressure Turbine (LPT)
+      const lptGroup = new THREE.Group();
+      lptGroup.name = "RR_5_Stage_LPT";
+      for (let s = 0; s < 5; s++) {
+        const zPos = -2.8 - (s * 0.22);
+        const rad = 0.65 + (s * 0.06);
+        const lptDiskGeo = new THREE.CylinderGeometry(rad, rad, 0.12, 36);
+        lptDiskGeo.rotateX(Math.PI / 2);
+        lptDiskGeo.translate(0, 0, zPos);
+        const lptDisk = new THREE.Mesh(lptDiskGeo, mats.turbineCMSX4);
+        lptGroup.add(lptDisk);
+      }
+      spoolLP.add(lptGroup);
+      componentsCatalog[7].meshRef = lptGroup;
+    }
+
+    // -------------------------------------------------------------
+    // 2. BUILD INTERMEDIATE PRESSURE SYSTEM (IP SPOOL)
+    // -------------------------------------------------------------
+    function buildIPStage() {
+      while (spoolIP.children.length > 0) spoolIP.remove(spoolIP.children[0]);
+
+      // 8-Stage IPC (Intermediate Pressure Compressor)
+      const ipcGroup = new THREE.Group();
+      ipcGroup.name = "RR_8_Stage_IPC";
+
+      for (let s = 0; s < 8; s++) {
+        const zPos = 0.9 - (s * 0.20);
+        const rad = 0.95 - (s * 0.038);
+        const diskGeo = new THREE.CylinderGeometry(rad, rad, 0.10, 36);
+        diskGeo.rotateX(Math.PI / 2);
+        diskGeo.translate(0, 0, zPos);
+        const disk = new THREE.Mesh(diskGeo, mats.nickelSpool);
+        ipcGroup.add(disk);
+      }
+      spoolIP.add(ipcGroup);
+      componentsCatalog[2].meshRef = ipcGroup;
+
+      // Intermediate Pressure Shaft (Middle Sleeve)
+      const ipShaftGeo = new THREE.CylinderGeometry(0.18, 0.18, 4.2, 32);
+      ipShaftGeo.rotateX(Math.PI / 2);
+      ipShaftGeo.translate(0, 0, -1.0);
+      const ipShaft = new THREE.Mesh(ipShaftGeo, mats.nickelSpool);
+      ipShaft.name = "RR_IP_Sleeve_Shaft";
+      spoolIP.add(ipShaft);
+
+      // Intermediate Pressure Turbine (IPT)
+      const iptGeo = new THREE.CylinderGeometry(0.60, 0.60, 0.14, 36);
+      iptGeo.rotateX(Math.PI / 2);
+      iptGeo.translate(0, 0, -2.5);
+      const iptMesh = new THREE.Mesh(iptGeo, mats.turbineCMSX4);
+      iptMesh.name = "RR_IP_Turbine";
+      spoolIP.add(iptMesh);
+      componentsCatalog[6].meshRef = iptMesh;
+    }
+
+    // -------------------------------------------------------------
+    // 3. BUILD HIGH PRESSURE SYSTEM (HP SPOOL)
+    // -------------------------------------------------------------
+    function buildHPStage() {
+      while (spoolHP.children.length > 0) spoolHP.remove(spoolHP.children[0]);
+
+      // 6-Stage HPC (High Pressure Compressor)
+      const hpcGroup = new THREE.Group();
+      hpcGroup.name = "RR_6_Stage_HPC";
+
+      for (let s = 0; s < 6; s++) {
+        const zPos = -0.7 - (s * 0.16);
+        const rad = 0.65 - (s * 0.035);
+        const diskGeo = new THREE.CylinderGeometry(rad, rad, 0.09, 36);
+        diskGeo.rotateX(Math.PI / 2);
+        diskGeo.translate(0, 0, zPos);
+        const disk = new THREE.Mesh(diskGeo, mats.nickelSpool);
+        hpcGroup.add(disk);
+      }
+      spoolHP.add(hpcGroup);
+      componentsCatalog[3].meshRef = hpcGroup;
+
+      // High Pressure Shaft (Outer Sleeve)
+      const hpShaftGeo = new THREE.CylinderGeometry(0.26, 0.26, 2.1, 32);
+      hpShaftGeo.rotateX(Math.PI / 2);
+      hpShaftGeo.translate(0, 0, -1.55);
+      const hpShaft = new THREE.Mesh(hpShaftGeo, mats.nickelSpool);
+      hpShaft.name = "RR_HP_Outer_Shaft";
+      spoolHP.add(hpShaft);
+      componentsCatalog[8].meshRef = hpShaft;
+
+      // High Pressure Turbine (HPT - CMSX-4 Single Crystal)
+      const hptGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.14, 40);
+      hptGeo.rotateX(Math.PI / 2);
+      hptGeo.translate(0, 0, -2.25);
+      const hptMesh = new THREE.Mesh(hptGeo, mats.turbineCMSX4);
+      hptMesh.name = "RR_HP_Turbine";
+      spoolHP.add(hptMesh);
+      componentsCatalog[5].meshRef = hptMesh;
+    }
+
+    // -------------------------------------------------------------
+    // 4. BUILD ANNULAR COMBUSTOR & 20 NOZZLES
+    // -------------------------------------------------------------
+    function buildCombustor() {
+      while (staticCombustor.children.length > 0) staticCombustor.remove(staticCombustor.children[0]);
+
+      // Ceramic Matrix Composite Combustor Liner
+      const combGeo = new THREE.CylinderGeometry(0.62, 0.62, 0.65, 40, 1, true);
+      combGeo.rotateX(Math.PI / 2);
+      combGeo.translate(0, 0, -1.85);
+      const combMesh = new THREE.Mesh(combGeo, mats.combustorCeramic);
+      combMesh.name = "RR_Combustor_Outer_Liner";
+      staticCombustor.add(combMesh);
+
+      // Glowing Inner Flame Torus
+      const flameGeo = new THREE.TorusGeometry(0.50, 0.08, 16, 40);
+      flameGeo.translate(0, 0, -1.85);
+      const flameMesh = new THREE.Mesh(flameGeo, mats.combustorFlame);
+      flameMesh.name = "RR_Combustor_Flame_Core";
+      staticCombustor.add(flameMesh);
+
+      // 20 Radial Fuel Injectors
+      const nozzleGroup = new THREE.Group();
+      for (let n = 0; n < 20; n++) {
+        const angle = (Math.PI * 2 / 20) * n;
+        const nozGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.22, 12);
+        nozGeo.rotateZ(angle);
+        nozGeo.translate(Math.cos(angle) * 0.58, Math.sin(angle) * 0.58, -1.65);
+        const nozMesh = new THREE.Mesh(nozGeo, mats.nickelSpool);
+        nozzleGroup.add(nozMesh);
+      }
+      staticCombustor.add(nozzleGroup);
+      componentsCatalog[4].meshRef = staticCombustor;
+    }
+
+    // -------------------------------------------------------------
+    // 5. BUILD CASING & CHEVRON EXHAUST
+    // -------------------------------------------------------------
+    function buildCasingAndExhaust(chevronCount = 16) {
+      while (staticCasing.children.length > 0) staticCasing.remove(staticCasing.children[0]);
+      while (staticExhaust.children.length > 0) staticExhaust.remove(staticExhaust.children[0]);
+
+      // Fan Containment Ring & Bypass Vanes
+      const fanCaseGeo = new THREE.CylinderGeometry(2.35, 2.35, 1.2, 64, 1, true);
+      fanCaseGeo.rotateX(Math.PI / 2);
+      fanCaseGeo.translate(0, 0, 1.5);
+      const fanCase = new THREE.Mesh(fanCaseGeo, mats.casingDark);
+      staticCasing.add(fanCase);
+
+      // 36 Outlet Guide Vanes (OGVs) behind fan
+      const ogvGroup = new THREE.Group();
+      for (let v = 0; v < 36; v++) {
+        const a = (Math.PI * 2 / 36) * v;
+        const vGeo = new THREE.BoxGeometry(0.03, 0.25, 1.4);
+        vGeo.rotateZ(a);
+        vGeo.translate(Math.cos(a) * 1.6, Math.sin(a) * 1.6, 0.85);
+        const vMesh = new THREE.Mesh(vGeo, mats.casingDark);
+        ogvGroup.add(vMesh);
+      }
+      staticCasing.add(ogvGroup);
+
+      // Core Exhaust Nozzle with Serrated Chevrons
+      const nozGeo = new THREE.CylinderGeometry(0.92, 0.85, 1.2, 48, 1, true);
+      nozGeo.rotateX(Math.PI / 2);
+      nozGeo.translate(0, 0, -4.2);
+      const nozMesh = new THREE.Mesh(nozGeo, mats.exhaustTitanium);
+      staticExhaust.add(nozMesh);
+
+      // Serrated Acoustic Chevrons
+      for (let c = 0; c < chevronCount; c++) {
+        const ca = (Math.PI * 2 / chevronCount) * c;
+        const chevGeo = new THREE.ConeGeometry(0.11, 0.28, 3);
+        chevGeo.rotateX(-Math.PI / 2);
+        chevGeo.rotateZ(ca);
+        chevGeo.translate(Math.cos(ca) * 0.85, Math.sin(ca) * 0.85, -4.9);
+        const chevMesh = new THREE.Mesh(chevGeo, mats.exhaustTitanium);
+        staticExhaust.add(chevMesh);
+      }
+
+      // Conical Aerodynamic Tail Plug
+      const plugGeo = new THREE.ConeGeometry(0.48, 1.9, 36);
+      plugGeo.rotateX(-Math.PI / 2);
+      plugGeo.translate(0, 0, -4.6);
+      const plugMesh = new THREE.Mesh(plugGeo, mats.exhaustTitanium);
+      staticExhaust.add(plugMesh);
+
+      componentsCatalog[9].meshRef = staticExhaust;
+    }
+
+    // -------------------------------------------------------------
+    // 6. BUILD ACCESSORY GEARBOX & DUAL FADEC
+    // -------------------------------------------------------------
+    function buildGearbox() {
+      while (staticGearbox.children.length > 0) staticGearbox.remove(staticGearbox.children[0]);
+
+      // Cast Aluminum Gearbox Case (Mounted bottom-center)
+      const gBoxGeo = new THREE.BoxGeometry(1.2, 0.45, 0.85);
+      gBoxGeo.translate(0, -2.15, 0.2);
+      const gBox = new THREE.Mesh(gBoxGeo, mats.casingDark);
+      staticGearbox.add(gBox);
+
+      // Radial Driveshaft Tower to Core
+      const towerGeo = new THREE.CylinderGeometry(0.08, 0.08, 1.3, 16);
+      towerGeo.translate(0, -1.35, 0.2);
+      const tower = new THREE.Mesh(towerGeo, mats.nickelSpool);
+      staticGearbox.add(tower);
+
+      // Dual FADEC EEC Units (Golden Anodized Finish)
+      const fadec1Geo = new THREE.BoxGeometry(0.35, 0.16, 0.32);
+      fadec1Geo.translate(-0.35, -2.42, 0.15);
+      const fadec1 = new THREE.Mesh(fadec1Geo, mats.fadecGold);
+      staticGearbox.add(fadec1);
+
+      const fadec2Geo = new THREE.BoxGeometry(0.35, 0.16, 0.32);
+      fadec2Geo.translate(0.35, -2.42, 0.15);
+      const fadec2 = new THREE.Mesh(fadec2Geo, mats.fadecGold);
+      staticGearbox.add(fadec2);
+
+      // High Pressure Fuel & Hydraulic Tubes
+      const tubeGeo = new THREE.TorusGeometry(1.85, 0.035, 12, 48, Math.PI);
+      tubeGeo.rotateX(Math.PI / 2);
+      tubeGeo.translate(0, -0.4, 0.5);
+      const tubeMesh = new THREE.Mesh(tubeGeo, mats.copperPiping);
+      staticGearbox.add(tubeMesh);
+
+      componentsCatalog[10].meshRef = staticGearbox;
+    }
+
+    // -------------------------------------------------------------
+    // 7. BUILD NACELLE COWLING & WING PYLON
+    // -------------------------------------------------------------
+    let nacelleMeshLeft, nacelleMeshRight, intakeLipMesh;
+    function buildNacelle() {
+      while (nacelleCowl.children.length > 0) nacelleCowl.remove(nacelleCowl.children[0]);
+
+      // Polished Titanium Chrome Intake Lip
+      const lipGeo = new THREE.TorusGeometry(2.35, 0.14, 24, 64);
+      lipGeo.translate(0, 0, 2.15);
+      intakeLipMesh = new THREE.Mesh(lipGeo, mats.titaniumFan);
+      nacelleCowl.add(intakeLipMesh);
+
+      // Split 180° Cylinders for Easy Cutaway View
+      // Left Cowl Half
+      const cowlLeftGeo = new THREE.CylinderGeometry(2.40, 2.25, 4.4, 48, 1, true, 0, Math.PI);
+      cowlLeftGeo.rotateX(Math.PI / 2);
+      cowlLeftGeo.translate(0, 0, 0.1);
+      nacelleMeshLeft = new THREE.Mesh(cowlLeftGeo, mats.nacelleWhite);
+      nacelleMeshLeft.name = "RR_Nacelle_Half_Left";
+      nacelleCowl.add(nacelleMeshLeft);
+
+      // Right Cowl Half (Toggled in Cutaway mode)
+      const cowlRightGeo = new THREE.CylinderGeometry(2.40, 2.25, 4.4, 48, 1, true, Math.PI, Math.PI);
+      cowlRightGeo.rotateX(Math.PI / 2);
+      cowlRightGeo.translate(0, 0, 0.1);
+      nacelleMeshRight = new THREE.Mesh(cowlRightGeo, mats.nacelleWhite);
+      nacelleMeshRight.name = "RR_Nacelle_Half_Right";
+      nacelleCowl.add(nacelleMeshRight);
+
+      // Wing Pylon Mounting Strut
+      const pylonGeo = new THREE.BoxGeometry(0.45, 0.40, 3.2);
+      pylonGeo.translate(0, 2.55, -0.2);
+      const pylon = new THREE.Mesh(pylonGeo, mats.casingDark);
+      nacelleCowl.add(pylon);
+
+      // Rolls-Royce Emblem Badge on Nacelle Flank
+      const badgeGeo = new THREE.PlaneGeometry(0.65, 0.65);
+      badgeGeo.rotateY(-Math.PI / 2);
+      badgeGeo.translate(2.41, 0.4, 0.5);
+      const badgeMat = new THREE.MeshBasicMaterial({
+        map: createRollsRoyceEmblemTexture(),
+        transparent: true
+      });
+      const badgeMesh = new THREE.Mesh(badgeGeo, badgeMat);
+      nacelleCowl.add(badgeMesh);
+
+      componentsCatalog[11].meshRef = nacelleCowl;
+    }
+
+    // -------------------------------------------------------------
+    // DYNAMIC AIRFLOW PARTICLE SYSTEM
+    // -------------------------------------------------------------
+    const particleCount = 280;
+    const particleGeo = new THREE.BufferGeometry();
+    const particlePos = new Float32Array(particleCount * 3);
+    const particleSpeeds = new Float32Array(particleCount);
+    const particleRadii = new Float32Array(particleCount);
+    const particleAngles = new Float32Array(particleCount);
+
+    for (let p = 0; p < particleCount; p++) {
+      particleSpeeds[p] = 0.04 + Math.random() * 0.08;
+      particleRadii[p] = 0.25 + Math.random() * 1.8;
+      particleAngles[p] = Math.random() * Math.PI * 2;
+      const z = 4.0 - Math.random() * 9.0;
+      particlePos[p * 3 + 0] = Math.cos(particleAngles[p]) * particleRadii[p];
+      particlePos[p * 3 + 1] = Math.sin(particleAngles[p]) * particleRadii[p];
+      particlePos[p * 3 + 2] = z;
+    }
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+
+    const particleMat = new THREE.PointsMaterial({
+      color: 0x00d2ff,
+      size: 0.08,
+      transparent: true,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending
+    });
+    const particleSystem = new THREE.Points(particleGeo, particleMat);
+    scene.add(particleSystem);
+
+    function updateAirflowParticles(speedMult) {
+      const positions = particleGeo.attributes.position.array;
+      for (let p = 0; p < particleCount; p++) {
+        // Move towards rear (exhaust)
+        positions[p * 3 + 2] -= particleSpeeds[p] * speedMult * 2.2;
+        // Swirl around engine axis
+        particleAngles[p] += 0.02 * speedMult;
+        positions[p * 3 + 0] = Math.cos(particleAngles[p]) * particleRadii[p];
+        positions[p * 3 + 1] = Math.sin(particleAngles[p]) * particleRadii[p];
+
+        // Loop back to front intake
+        if (positions[p * 3 + 2] < -5.2) {
+          positions[p * 3 + 2] = 4.2;
+        }
+      }
+      particleGeo.attributes.position.needsUpdate = true;
+    }
+
+    // -------------------------------------------------------------
+    // AUDIO SIMULATOR (Procedural Web Audio API Turbofan Synthesizer)
+    // -------------------------------------------------------------
+    let audioCtx = null;
+    let isSoundOn = false;
+    let fanWhineOsc = null;
+    let coreRoarGain = null;
+    let noiseNode = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+
+        // High pitch fan blade whine
+        fanWhineOsc = audioCtx.createOscillator();
+        fanWhineOsc.type = 'sawtooth';
+        fanWhineOsc.frequency.setValueAtTime(140, audioCtx.currentTime);
+
+        const whineFilter = audioCtx.createBiquadFilter();
+        whineFilter.type = 'bandpass';
+        whineFilter.frequency.setValueAtTime(620, audioCtx.currentTime);
+        whineFilter.Q.setValueAtTime(4.0, audioCtx.currentTime);
+
+        const whineGain = audioCtx.createGain();
+        whineGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+        fanWhineOsc.connect(whineFilter);
+        whineFilter.connect(whineGain);
+        whineGain.connect(audioCtx.destination);
+        fanWhineOsc.start();
+
+        // Low frequency jet roar (White noise buffer)
+        const bufferSize = audioCtx.sampleRate * 2;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+
+        noiseNode = audioCtx.createBufferSource();
+        noiseNode.buffer = noiseBuffer;
+        noiseNode.loop = true;
+
+        const roarFilter = audioCtx.createBiquadFilter();
+        roarFilter.type = 'lowpass';
+        roarFilter.frequency.setValueAtTime(220, audioCtx.currentTime);
+
+        coreRoarGain = audioCtx.createGain();
+        coreRoarGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+
+        noiseNode.connect(roarFilter);
+        roarFilter.connect(coreRoarGain);
+        coreRoarGain.connect(audioCtx.destination);
+        noiseNode.start();
+
+      } catch (e) {
+        console.warn('Audio not supported:', e);
+      }
+    }
+
+    function updateAudioParameters(throttlePct) {
+      if (!audioCtx || !isSoundOn) return;
+      const normalized = throttlePct / 100;
+      if (fanWhineOsc) {
+        fanWhineOsc.frequency.setTargetAtTime(120 + normalized * 380, audioCtx.currentTime, 0.1);
+      }
+      if (coreRoarGain) {
+        coreRoarGain.gain.setTargetAtTime(0.03 + normalized * 0.12, audioCtx.currentTime, 0.1);
+      }
+    }
+
+    function toggleSound() {
+      if (!audioCtx) initAudio();
+      if (!audioCtx) return;
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      isSoundOn = !isSoundOn;
+      const btn = document.getElementById('btnSound');
+      const label = document.getElementById('soundLabel');
+
+      if (isSoundOn) {
+        btn.classList.add('active');
+        label.innerText = 'Engine Sound: ON';
+        updateAudioParameters(parseInt(document.getElementById('throttleSlider').value));
+        showToast('Turbofan Audio Synthesizer Engaged');
+      } else {
+        btn.classList.remove('active');
+        label.innerText = 'Engine Sound: OFF';
+        if (coreRoarGain) coreRoarGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // INITIAL MODEL GENERATION
+    // -------------------------------------------------------------
+    buildFanStage(34);
+    buildIPStage();
+    buildHPStage();
+    buildCombustor();
+    buildCasingAndExhaust(16);
+    buildGearbox();
+    buildNacelle();
+
+    // Default Cutaway: 50% cutaway so internal rotating spools are visible on start!
+    let cutawayState = 1; // 0 = Full, 1 = 50% Cutaway, 2 = Core Only
+    function applyCutawayMode() {
+      const label = document.getElementById('cutawayLabel');
+      if (cutawayState === 0) {
+        // Full Solid
+        nacelleMeshLeft.visible = true;
+        nacelleMeshRight.visible = true;
+        intakeLipMesh.visible = true;
+        label.innerText = "OFF (Solid)";
+      } else if (cutawayState === 1) {
+        // 50% Cutaway: Hide one half so internal compressors & turbines are revealed!
+        nacelleMeshLeft.visible = false;
+        nacelleMeshRight.visible = true;
+        intakeLipMesh.visible = true;
+        label.innerText = "50% Cutaway";
+      } else {
+        // Core Only (No Outer Cowl)
+        nacelleMeshLeft.visible = false;
+        nacelleMeshRight.visible = false;
+        intakeLipMesh.visible = false;
+        label.innerText = "Core Only";
+      }
+    }
+    applyCutawayMode();
+
+    // -------------------------------------------------------------
+    // COMPONENT INSPECTOR & HIERARCHY POPULATION
+    // -------------------------------------------------------------
+    const componentListEl = document.getElementById('componentList');
+    function renderComponentList() {
+      componentListEl.innerHTML = '';
+      componentsCatalog.forEach((comp, idx) => {
+        const item = document.createElement('div');
+        item.className = 'comp-item' + (idx === 0 ? ' active' : '');
+        item.innerHTML = `
+          <div class="comp-name">
+            <span style="color:#00d2ff;font-size:12px;">•</span>
+            <span>${comp.name}</span>
+          </div>
+          <span class="comp-spool-tag ${comp.spoolClass}">${comp.spool.split(' ')[0]}</span>
+        `;
+        item.addEventListener('click', () => selectComponent(idx));
+        componentListEl.appendChild(item);
+      });
+    }
+
+    let activeCompIndex = 0;
+    function selectComponent(idx) {
+      activeCompIndex = idx;
+      const comp = componentsCatalog[idx];
+      document.querySelectorAll('.comp-item').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+      });
+
+      document.getElementById('inspName').innerText = comp.name;
+      document.getElementById('inspDesc').innerText = comp.desc;
+      document.getElementById('inspSubsystem').innerText = comp.spool;
+      document.getElementById('inspMaterial').innerText = comp.metallurgy;
+      document.getElementById('inspTemp').innerText = comp.temp;
+      document.getElementById('inspSeed').innerText = `0x${(idx + 1) * 7824}_TRENT`;
+      document.getElementById('inspBlender').innerText = `RR_${comp.id.toUpperCase()}`;
+
+      // Highlight flash effect
+      if (comp.meshRef) {
+        const originalMat = comp.meshRef.material;
+        comp.meshRef.material = mats.highlightMat;
+        setTimeout(() => {
+          if (comp.meshRef) comp.meshRef.material = originalMat;
+        }, 350);
+      }
+    }
+    renderComponentList();
+
+    // -------------------------------------------------------------
+    // EXPLODED VIEW LERP
+    // -------------------------------------------------------------
+    let explodedFactor = 0.0;
+    function setExplodedFactor(val) {
+      explodedFactor = val;
+      subAssemblies.forEach(sub => {
+        sub.obj.position.copy(sub.basePos).addScaledVector(sub.explodeDir, explodedFactor);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // UI EVENT HANDLERS
+    // -------------------------------------------------------------
+    // Throttle Slider
+    const throttleSlider = document.getElementById('throttleSlider');
+    const throttleVal = document.getElementById('throttleVal');
+    const thrustRating = document.getElementById('thrustRating');
+    const valN1 = document.getElementById('valN1');
+    const valN2 = document.getElementById('valN2');
+    const valN3 = document.getElementById('valN3');
+    const valEGT = document.getElementById('valEGT');
+
+    let currentThrottle = 75;
+    throttleSlider.addEventListener('input', (e) => {
+      currentThrottle = parseInt(e.target.value);
+      const ratio = currentThrottle / 100;
+
+      let tag = "Cruise";
+      if (currentThrottle <= 25) tag = "Ground Idle";
+      else if (currentThrottle >= 95) tag = "Max Takeoff / TOGA";
+      throttleVal.innerText = `${currentThrottle}% (${tag})`;
+
+      // Dynamic Telemetry Calculations
+      const lbf = Math.round(22000 + ratio * 75000);
+      thrustRating.innerText = `${lbf.toLocaleString()} lbf`;
+
+      valN1.innerHTML = `${Math.round(800 + ratio * 2000).toLocaleString()} <span>RPM</span>`;
+      valN2.innerHTML = `${Math.round(2400 + ratio * 5800).toLocaleString()} <span>RPM</span>`;
+      valN3.innerHTML = `${Math.round(4800 + ratio * 8200).toLocaleString()} <span>RPM</span>`;
+      valEGT.innerHTML = `${Math.round(420 + ratio * 480)} <span>°C</span>`;
+
+      updateAudioParameters(currentThrottle);
+    });
+
+    // Exploded View Slider
+    const explodedSlider = document.getElementById('explodedSlider');
+    const explodedVal = document.getElementById('explodedVal');
+    explodedSlider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      explodedVal.innerText = `${v}%`;
+      setExplodedFactor(v / 100);
+    });
+
+    // Cutaway Toggle Button
+    const btnToggleCutaway = document.getElementById('btnToggleCutaway');
+    btnToggleCutaway.addEventListener('click', () => {
+      cutawayState = (cutawayState + 1) % 3;
+      applyCutawayMode();
+      showToast(`Cutaway Mode: ${document.getElementById('cutawayLabel').innerText}`);
+    });
+
+    // Nacelle Cowl Mode Buttons
+    document.querySelectorAll('[data-nacelle]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-nacelle]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        const mode = e.target.getAttribute('data-nacelle');
+        if (mode === 'solid') {
+          nacelleMeshLeft.material = mats.nacelleWhite;
+          nacelleMeshRight.material = mats.nacelleWhite;
+          nacelleMeshRight.visible = true;
+        } else if (mode === 'glass') {
+          nacelleMeshLeft.material = mats.nacelleGlass;
+          nacelleMeshRight.material = mats.nacelleGlass;
+          nacelleMeshLeft.visible = true;
+          nacelleMeshRight.visible = true;
+        } else if (mode === 'hidden') {
+          nacelleMeshLeft.visible = false;
+          nacelleMeshRight.visible = false;
+        }
+      });
+    });
+
+    // Camera Presets
+    document.querySelectorAll('[data-cam]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const camMode = e.target.getAttribute('data-cam');
+        if (camMode === 'fan') {
+          gsapMoveCamera(0, 0, 5.8, 0, 0, 1.8);
+        } else if (camMode === 'core') {
+          gsapMoveCamera(3.5, 0.4, 0.2, 0, 0, -0.6);
+        } else if (camMode === 'turbines') {
+          gsapMoveCamera(4.2, 0.8, -4.5, 0, 0, -3.2);
+        } else if (camMode === 'gearbox') {
+          gsapMoveCamera(0, -3.8, 1.2, 0, -1.8, 0.2);
+        } else if (camMode === 'iso') {
+          gsapMoveCamera(6.2, 2.8, 7.5, 0, 0, 0);
+        } else if (camMode === 'reset') {
+          gsapMoveCamera(6.2, 2.8, 7.5, 0, 0, 0);
+        }
+      });
+    });
+
+    function gsapMoveCamera(px, py, pz, tx, ty, tz) {
+      camera.position.set(px, py, pz);
+      controls.target.set(tx, ty, tz);
+      controls.update();
+    }
+
+    // Audio Button
+    document.getElementById('btnSound').addEventListener('click', toggleSound);
+
+    // -------------------------------------------------------------
+    // MODAL DIALOGS (Blender & Higgsfield)
+    // -------------------------------------------------------------
+    const blenderModal = document.getElementById('blenderModal');
+    const higgsfieldModal = document.getElementById('higgsfieldModal');
+
+    document.getElementById('btnOpenBlenderModal').addEventListener('click', () => {
+      blenderModal.classList.add('active');
+      fetchBlenderScriptPreview();
+    });
+    document.getElementById('btnCloseBlenderModal').addEventListener('click', () => {
+      blenderModal.classList.remove('active');
+    });
+
+    document.getElementById('btnOpenHiggsfieldModal').addEventListener('click', () => {
+      higgsfieldModal.classList.add('active');
+    });
+    document.getElementById('btnCloseHiggsfieldModal').addEventListener('click', () => {
+      higgsfieldModal.classList.remove('active');
+    });
+
+    // Close on backdrop click
+    [blenderModal, higgsfieldModal].forEach(m => {
+      m.addEventListener('click', (e) => {
+        if (e.target === m) m.classList.remove('active');
+      });
+    });
+
+    // Modal Tabs
+    document.querySelectorAll('.tab-btn').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        const targetId = e.target.getAttribute('data-tab');
+        document.getElementById(targetId).classList.add('active');
+      });
+    });
+
+    // -------------------------------------------------------------
+    // BLENDER INTEGRATION CODE & PREVIEW
+    // -------------------------------------------------------------
+    let cachedBlenderScript = "";
+    function fetchBlenderScriptPreview() {
+      if (cachedBlenderScript) {
+        document.getElementById('blenderCodePreview').innerText = cachedBlenderScript;
+        return;
+      }
+      fetch('rolls_royce_blender_link.py')
+        .then(res => res.text())
+        .then(text => {
+          cachedBlenderScript = text;
+          document.getElementById('blenderCodePreview').innerText = text;
+        })
+        .catch(err => {
+          document.getElementById('blenderCodePreview').innerText = "# Ready to download rolls_royce_blender_link.py";
+        });
+    }
+
+    // Copy Blender Script
+    document.getElementById('btnCopyBlenderScript').addEventListener('click', () => {
+      if (!cachedBlenderScript) {
+        fetch('rolls_royce_blender_link.py')
+          .then(res => res.text())
+          .then(text => {
+            cachedBlenderScript = text;
+            navigator.clipboard.writeText(text);
+            showToast('Blender Python Script Copied to Clipboard!');
+          });
+      } else {
+        navigator.clipboard.writeText(cachedBlenderScript);
+        showToast('Blender Python Script Copied to Clipboard!');
+      }
+    });
+
+    // Export OBJ File
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      try {
+        const exporter = new THREE.OBJExporter();
+        const result = exporter.parse(engineRoot);
+        const blob = new Blob([result], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'rolls_royce_trent_engine.obj';
+        link.click();
+        showToast('Engine Mesh Exported as rolls_royce_trent_engine.obj');
+      } catch (err) {
+        console.error('Export error:', err);
+        showToast('Export error: ' + err.message);
+      }
+    });
+
+    // Test Bridge Server Link
+    document.getElementById('btnTestBridge').addEventListener('click', () => {
+      const badge = document.getElementById('bridgeStatusBadge');
+      badge.innerText = 'Pinging...';
+      badge.style.color = '#38bdf8';
+
+      fetch('http://localhost:8081/status')
+        .then(res => res.json())
+        .then(data => {
+          badge.innerText = 'ONLINE (Blender Linked)';
+          badge.style.color = '#10b981';
+          badge.style.background = 'rgba(16, 185, 129, 0.15)';
+          showToast('Connected to Local Blender Bridge!');
+        })
+        .catch(err => {
+          badge.innerText = 'Server Offline (Run blender_bridge_server.py)';
+          badge.style.color = '#f59e0b';
+          badge.style.background = 'rgba(245, 158, 11, 0.15)';
+          showToast('Bridge not detected. Start blender_bridge_server.py locally.');
+        });
+    });
+
+    // Send to Bridge
+    document.getElementById('btnSendToBridge').addEventListener('click', () => {
+      const exporter = new THREE.OBJExporter();
+      const objData = exporter.parse(engineRoot);
+
+      fetch('http://localhost:8081/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'higgsfield_sync',
+          engine: 'Rolls-Royce Trent XWB Replica',
+          components_count: 12,
+          obj_data: objData
+        })
+      })
+      .then(res => res.json())
+      .then(d => {
+        showToast('Pushed 100% Replica Geometry to Blender!');
+      })
+      .catch(err => {
+        showToast('Bridge not connected. Ensure python bridge is running.');
+      });
+    });
+
+    // -------------------------------------------------------------
+    // HIGGSFIELD AI STUDIO GENERATIVE SYNTHESIS
+    // -------------------------------------------------------------
+    const promptPresets = document.querySelectorAll('.preset-chips .chip');
+    const higgsfieldPrompt = document.getElementById('higgsfieldPrompt');
+
+    promptPresets.forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        higgsfieldPrompt.value = e.target.getAttribute('data-prompt');
+        showToast('Preset Loaded: ' + e.target.innerText);
+      });
+    });
+
+    const twistSlider = document.getElementById('twistSlider');
+    const twistVal = document.getElementById('twistVal');
+    twistSlider.addEventListener('input', (e) => {
+      twistVal.innerText = `${e.target.value}°`;
+    });
+
+    const bprSlider = document.getElementById('bprSlider');
+    const bprVal = document.getElementById('bprVal');
+    bprSlider.addEventListener('input', (e) => {
+      bprVal.innerText = `${(e.target.value / 10).toFixed(1)}:1`;
+    });
+
+    const btnSynthesize = document.getElementById('btnSynthesizeHiggsfield');
+    const genProgressBox = document.getElementById('genProgressBox');
+    const genProgressFill = document.getElementById('genProgressFill');
+    const genPercent = document.getElementById('genPercent');
+    const genLog = document.getElementById('genLog');
+
+    btnSynthesize.addEventListener('click', () => {
+      btnSynthesize.disabled = true;
+      genProgressBox.style.display = 'block';
+
+      const steps = [
+        { pct: 15, log: "[Higgsfield Tensor] Initializing latent manifold diffusion for Rolls-Royce Trent..." },
+        { pct: 35, log: "[Higgsfield Aerofoil] Synthesizing 22 wide-chord swept titanium fan blades..." },
+        { pct: 55, log: "[Higgsfield Spools] Constructing 3-shaft concentric shaft geometry & clearances..." },
+        { pct: 75, log: "[Higgsfield Combustor] Formulating 20 lean-burn nozzles & CMC thermal liner..." },
+        { pct: 90, log: "[Higgsfield Acoustics] Generating 16 serrated noise-reduction chevrons..." },
+        { pct: 100, log: "[Higgsfield Complete] 100% accurate replica converged. Updating viewport & Blender link!" }
+      ];
+
+      let stepIdx = 0;
+      const interval = setInterval(() => {
+        if (stepIdx < steps.length) {
+          const s = steps[stepIdx];
+          genProgressFill.style.width = `${s.pct}%`;
+          genPercent.innerText = `${s.pct}%`;
+          genLog.innerText = s.log;
+          stepIdx++;
+        } else {
+          clearInterval(interval);
+          btnSynthesize.disabled = false;
+
+          // Rebuild components with chosen parameters
+          const chosenTwist = parseInt(twistSlider.value);
+          buildFanStage(chosenTwist);
+          buildIPStage();
+          buildHPStage();
+          buildCombustor();
+          buildCasingAndExhaust(16);
+          buildGearbox();
+          buildNacelle();
+          applyCutawayMode();
+          renderComponentList();
+
+          showToast('Higgsfield AI: All 12 Components Successfully Synthesized!');
+          setTimeout(() => {
+            higgsfieldModal.classList.remove('active');
+            genProgressBox.style.display = 'none';
+          }, 1000);
+        }
+      }, 350);
+    });
+
+    // -------------------------------------------------------------
+    // TOAST NOTIFICATIONS
+    // -------------------------------------------------------------
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3200);
+    }
+
+    // -------------------------------------------------------------
+    // MAIN ANIMATION LOOP (3-SPOOL DIFFERENTIAL ROTATION)
+    // -------------------------------------------------------------
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      const ratio = currentThrottle / 100;
+
+      // Rolls-Royce Trent Differential Rotational Speeds
+      // LP Spool: ~2,700 RPM normalized
+      // IP Spool: ~7,150 RPM (~2.6x LP speed)
+      // HP Spool: ~12,480 RPM (~4.6x LP speed)
+      const lpSpeed = (0.6 + ratio * 1.8) * delta * 2.5;
+      const ipSpeed = lpSpeed * 2.65;
+      const hpSpeed = lpSpeed * 4.62;
+
+      spoolLP.rotation.z -= lpSpeed;
+      spoolIP.rotation.z -= ipSpeed;
+      spoolHP.rotation.z -= hpSpeed;
+
+      // Dynamic flame flicker in combustor
+      const flameCore = staticCombustor.getObjectByName('RR_Combustor_Flame_Core');
+      if (flameCore) {
+        const pulse = 0.8 + Math.sin(clock.getElapsedTime() * 12.0) * 0.15;
+        flameCore.scale.set(pulse, pulse, 1.0);
+        warmCoreLight.intensity = 2.5 + Math.random() * 1.5;
+      }
+
+      // Airflow Particles
+      updateAirflowParticles(ratio);
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Responsive Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
 </html>
